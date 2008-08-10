@@ -18,43 +18,37 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#    This script creates a new application. It creates folders and 
+#    configures apache, mongrel and mysql. 
+
 require "rubygems"
 require "optiflag"
 require "fileutils"
 require "#{File.dirname(__FILE__)}/../lib/mysql_helper"
-require "#{File.dirname(__FILE__)}/../lib/s3_helper"
 require "#{File.dirname(__FILE__)}/../lib/utils"
 
 module CommandLineArgs extend OptiFlagSet
   optional_flag "application"
-  optional_flag "bucket"
-  optional_flag "dir"
+  optional_flag "servername"
+  optional_flag "db_name"
+  optional_flag "db_user"
+  optional_flag "db_password"
   and_process!
 end
 
-application = ARGV.flags.application || "app"
-bucket = ARGV.flags.bucket
-dir = ARGV.flags.dir || "database"
-@s3 = Ec2onrails::S3Helper.new(bucket, dir)
-@mysql = Ec2onrails::MysqlHelper.from_config(application)
-@temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
-if File.exists?(@temp_dir)
-  puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
-  exit
-end
+application = ARGV.flags.application
+servername = ARGV.flags.servername
+db_name = ARGV.flags.db_name
+db_user = ARGV.flags.db_user
+db_password = ARGV.flags.db_password
+
+@mysql = Ec2onrails::MysqlHelper.from_settings(db_name, db_user, db_password)
+@app = Ec2onrails::AppHelper.new(application)
 
 begin
-  FileUtils.mkdir_p @temp_dir
-  
-  file = "#{@temp_dir}/dump.sql.gz"
-  @s3.retrieve_file(file)
-  @mysql.load_from_dump(file)
-  
-  @s3.retrieve_files("mysql-bin.", @temp_dir)
-  logs = Dir.glob("#{@temp_dir}/mysql-bin.[0-9]*").sort
-  logs.each {|log| @mysql.execute_binary_log(log) }
-  
-  @mysql.execute_sql "reset master"
-ensure
-  FileUtils.rm_rf(@temp_dir)
+
+ @app.create_directory
+ @app.create_apache_files
+ @app.create_mongrel_files
+ 
 end
