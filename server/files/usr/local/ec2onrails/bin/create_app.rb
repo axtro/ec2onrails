@@ -50,5 +50,6 @@ begin
  @app.create_directory
  @app.create_apache_files
  @app.create_mongrel_files
+ @mysql.create_database
  
 end

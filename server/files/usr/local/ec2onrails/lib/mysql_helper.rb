@@ -77,6 +77,15 @@ module Ec2onrails
       Utils.run cmd
     end
 
+    def create_database
+      sql  = "create database #{@database};"
+      sql += "create user #{@user};" 
+      sql += "set password for #{@user} = password(\"#{@password}\");"
+      sql += "grant all on #{@database}.* to #{@user};"
+
+      Utils.run "mysql -u root -e '#{sql}'"
+    end
+
   private
 
     def initialize()
