@@ -39,7 +39,7 @@ Capistrano::Configuration.instance.load do
   set :ec2onrails_version, Ec2onrails::VERSION::STRING
   set :image_id_32_bit, Ec2onrails::VERSION::AMI_ID_32_BIT
   set :image_id_64_bit, Ec2onrails::VERSION::AMI_ID_64_BIT
-  set :deploy_to, "/mnt/app"
+  set :deploy_to, "/mnt/#{application}"
   set :use_sudo, false
   set :user, "app"
 
