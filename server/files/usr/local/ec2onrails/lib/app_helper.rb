@@ -26,9 +26,9 @@ module Ec2onrails
   class AppHelper
     ROOT_PATH = '/mnt'
     APACHE_PATH = '/etc/apache2'
-    MONGREL_INSTANCES = 4
-    BALANCE_MANAGER_START_PORT = 8090
-    START_CLUSTER_PORT = 8100
+    MONGREL_INSTANCES = 6
+    BALANCE_MANAGER_START_PORT = 8080
+    START_CLUSTER_PORT = 8000
     CLUSTER_PORT_OFFSET = 100
     USER_NAME = 'app' # TODO: need to create a user for each app to be more secure
 
@@ -53,7 +53,8 @@ module Ec2onrails
       FileUtils.chown_R(USER_NAME, USER_NAME, application_path) 
     end
 
-    def create_apache_files
+    # domain string is used by erb template
+    def create_apache_files(domain_string)
      base_path = "#{APACHE_PATH}/sites-available"
      index = 0
    
@@ -67,10 +68,10 @@ module Ec2onrails
      end
      
      # create the main config file 
-     generate_template("templates/application.erb", "#{base_path}/#{name}", binding)
+     Utils.generate_template("templates/application.erb", "#{base_path}/#{name}", binding)
  
      # create a config with common setup
-     generate_template("templates/common.erb", "#{base_path}/#{name}.common", binding)
+     Utils.generate_template("templates/common.erb", "#{base_path}/#{name}.common", binding)
  
      # create empty config file for custom configuration
      FileUtils.touch("#{base_path}/#{name}.custom")
@@ -79,14 +80,15 @@ module Ec2onrails
      File.symlink("#{base_path}/#{name}", "#{APACHE_PATH}/sites-enabled/#{sprintf("%03d",application_index)}-#{name}")
     end
 
-    def create_mongrel_files
+    # rails_env is passed to the template
+    def create_mongrel_files(rails_env)
       base_path = "#{APACHE_PATH}/conf.d"
       start_port = (START_CLUSTER_PORT + (application_index*CLUSTER_PORT_OFFSET))
       ports = (start_port..(start_port+MONGREL_INSTANCES-1))
  
-      generate_template("templates/mongrel_cluster.yml.erb", "/etc/mongrel_cluster/#{name}.yml", binding)
-      generate_template("templates/proxy_cluster.conf.erb", "#{base_path}/#{name}.proxy_cluster.conf", binding)
-      generate_template("templates/proxy_frontend.conf.erb", "#{base_path}/#{name}.proxy_frontend.conf", binding)
+      Utils.generate_template("templates/mongrel_cluster.yml.erb", "/etc/mongrel_cluster/#{name}.yml", binding)
+      Utils.generate_template("templates/proxy_cluster.conf.erb", "#{base_path}/#{name}.proxy_cluster.conf", binding)
+      Utils.generate_template("templates/proxy_frontend.conf.erb", "#{base_path}/#{name}.proxy_frontend.conf", binding)
     end
 
     def delete_directory
@@ -118,10 +120,11 @@ module Ec2onrails
         match = name.match(/^(\d+)-(.*)$/)
 
         if match && match[2] == name
-          return match[1]
+          return match[1].to_i
           break
         end
       end
+      return 0
     end
 
   end

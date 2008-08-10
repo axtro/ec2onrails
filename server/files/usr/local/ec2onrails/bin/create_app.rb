@@ -25,11 +25,13 @@ require "rubygems"
 require "optiflag"
 require "fileutils"
 require "#{File.dirname(__FILE__)}/../lib/mysql_helper"
+require "#{File.dirname(__FILE__)}/../lib/app_helper"
 require "#{File.dirname(__FILE__)}/../lib/utils"
 
 module CommandLineArgs extend OptiFlagSet
-  optional_flag "application"
-  optional_flag "servername"
+  flag "application"
+  flag "servername"
+  optional_flag "env"
   optional_flag "db_name"
   optional_flag "db_user"
   optional_flag "db_password"
@@ -37,7 +39,8 @@ module CommandLineArgs extend OptiFlagSet
 end
 
 application = ARGV.flags.application
-servername = ARGV.flags.servername
+server_name = ARGV.flags.servername
+rails_env = ARGV.flags.env || 'production'
 db_name = ARGV.flags.db_name
 db_user = ARGV.flags.db_user
 db_password = ARGV.flags.db_password
@@ -48,8 +51,8 @@ db_password = ARGV.flags.db_password
 begin
 
  @app.create_directory
- @app.create_apache_files
- @app.create_mongrel_files
- @mysql.create_database
+ @app.create_apache_files(server_name)
+ @app.create_mongrel_files(rails_env)
+ @mysql.create_database if db_name
  
 end

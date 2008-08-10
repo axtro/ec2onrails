@@ -1,10 +1,10 @@
 # Based on http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
 #  
 <VirtualHost *>
-  ServerName <%= @domain_string %>
+  ServerName <%= domain_string %>
      
-  Include /etc/apache2/sites-available/<%= @application_name %>.custom
-  Include /etc/apache2/sites-available/<%= @application_name %>.common
+  Include /etc/apache2/sites-available/<%= name %>.custom
+  Include /etc/apache2/sites-available/<%= name %>.common
           
   ErrorLog /mnt/log/apache2/error.log
   LogLevel warn

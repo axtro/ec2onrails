@@ -17,7 +17,7 @@ module Ec2onrails
       template = ERB.new(IO.read(template_path))
 
       File.open(destination_path, "w") do |f| 
-        f.write(template.result(template_binding))}
+        f.write(template.result(template_binding))
       end
     end
   end
