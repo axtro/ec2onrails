@@ -65,7 +65,7 @@ Capistrano::Configuration.instance.load do
     task :start, :roles => :app_admin do
       run_init_script("mongrel", "start")
       run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
-      sudo "monit -g app monitor all"
+      sudo "monit -g #{application} monitor all"
     end
     
     desc <<-DESC
@@ -73,7 +73,7 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :stop, :roles => :app_admin do
-      sudo "monit -g app unmonitor all"
+      sudo "monit -g #{application} unmonitor all"
       run_init_script("mongrel", "stop")
     end
     
@@ -255,7 +255,7 @@ Capistrano::Configuration.instance.load do
         "database-archive/<timestamp>/dump.sql.gz".
       DESC
       task :archive, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --application #{application} --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -264,7 +264,7 @@ Capistrano::Configuration.instance.load do
         expected to be the default, "mysqldump.sql.gz".
       DESC
       task :restore, :roles => :db do
-        run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
+        run "/usr/local/ec2onrails/bin/restore_app_db.rb --application #{application} --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -273,7 +273,7 @@ Capistrano::Configuration.instance.load do
         make sense).
       DESC
       task :init_backup, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --application #{application} --reset"
       end
     end
     
@@ -305,7 +305,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :set_rails_env, :roles => all_admin_role_names do
         rails_env = fetch(:rails_env, "production")
-        sudo "/usr/local/ec2onrails/bin/set_rails_env #{rails_env}"
+        sudo "/usr/local/ec2onrails/bin/set_rails_env --application #{application} #{rails_env}"
       end
       
       desc <<-DESC
@@ -454,6 +454,23 @@ Capistrano::Configuration.instance.load do
         sudo "a2ensite default-ssl"
         run_init_script("apache2", "restart")
       end
+
+      desc <<-DESC
+        Create a new aplication. Adds a new application folder, 
+	database and database user. Configures apache, mongrel, 
+	mysql and monit.
+      DESC
+      task :create_app, :roles => all_admin_roles do
+      end
+
+      desc <<-DESC
+        Removes the application. You can choose to 
+	keep to the database or remove it. Removes all 
+	application specific configuration.
+      DESC
+      task :remove_app, :roles => all_admin_roles do
+      end
+
     end
     
   end
