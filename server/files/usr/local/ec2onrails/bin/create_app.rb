@@ -28,13 +28,13 @@ require "#{File.dirname(__FILE__)}/../lib/app_helper"
 
 module CommandLineArgs extend OptiFlagSet
   flag "application"
-  flag "servername"
+  flag "domain"
   optional_flag "env"
   and_process!
 end
 
 application = ARGV.flags.application
-server_name = ARGV.flags.servername
+domain = ARGV.flags.domain
 rails_env = ARGV.flags.env || 'production'
 
 @app = Ec2onrails::AppHelper.new(application)
@@ -42,7 +42,7 @@ rails_env = ARGV.flags.env || 'production'
 begin
 
  @app.create_directory
- @app.create_apache_files(server_name)
+ @app.create_apache_files(domain)
  @app.create_mongrel_files(rails_env)
  
 end
