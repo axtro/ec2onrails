@@ -283,7 +283,7 @@ Capistrano::Configuration.instance.load do
         Create a new aplication. Adds a new application folder. 
 	Configures apache, mongrel and monit.
       DESC
-      task :create, :roles => all_admin_roles do
+      task :create, :roles => all_admin_role_names do
         domain = nil
 	while domain.blank?
           domain = Capistrano::CLI.ui.ask('Please enter a domain name. e.g. domain.com or test.domain.com:1234')
@@ -298,7 +298,7 @@ Capistrano::Configuration.instance.load do
 	Database is NOT removed. Run ec2onrails:db:drop BEFORE calling 
 	ec2onrails:app:destroy, if you wish to permanently remove the db.
       DESC
-      task :destroy, :roles => all_admin_roles do
+      task :destroy, :roles => all_admin_role_names do
         run "/usr/local/ec2onrails/bin/destroy_app.rb --application #{application}"
       end
 
