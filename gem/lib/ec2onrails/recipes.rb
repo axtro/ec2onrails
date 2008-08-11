@@ -285,11 +285,11 @@ Capistrano::Configuration.instance.load do
       DESC
       task :create, :roles => all_admin_role_names do
         domain = nil
-	while domain.blank?
-          domain = Capistrano::CLI.ui.ask('Please enter a domain name. e.g. domain.com or test.domain.com:1234')
+	while domain.nil? || domain.empty?
+          domain = Capistrano::CLI.ui.ask('Please enter a domain name. e.g. domain.com or test.domain.com:1234 or *:4010')
 	end
 
-        run "/usr/local/ec2onrails/bin/create_app.rb --application #{application} --domain '#{domain}'"
+        sudo "/usr/local/ec2onrails/bin/create_app.rb --application #{application} --domain '#{domain}'"
       end
 
       desc <<-DESC
@@ -299,7 +299,7 @@ Capistrano::Configuration.instance.load do
 	ec2onrails:app:destroy, if you wish to permanently remove the db.
       DESC
       task :destroy, :roles => all_admin_role_names do
-        run "/usr/local/ec2onrails/bin/destroy_app.rb --application #{application}"
+        sudo "/usr/local/ec2onrails/bin/destroy_app.rb --application #{application}"
       end
 
     end
