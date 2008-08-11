@@ -91,20 +91,18 @@ module Ec2onrails
       Utils.generate_template("templates/proxy_frontend.conf.erb", "#{base_path}/#{name}.proxy_frontend.conf", binding)
     end
 
-    def delete_directory
+    def destroy_directory
       FileUtils.rm_rf application_path 
     end
 
-    def delete_apache_files
-      base_path = "#{APACHE_PATH}/sites-available"
-
-      FileUtils.rm("#{base_batch}/{application_index}-{name}")
-      FileUtils.rm("#{base_path}/#{name}")
-      FileUtils.rm("#{base_path}/#{name}.common")
-      FileUtils.rm("#{base_path}/#{name}.custom")
+    def destroy_apache_files
+      FileUtils.rm("#{APACHE_PATH}/sites-enabled/#{sprintf("%03d", application_index)}-#{name}")
+      FileUtils.rm("#{APACHE_PATH}/sites-available/#{name}")
+      FileUtils.rm("#{APACHE_PATH}/sites-available/#{name}.common")
+      FileUtils.rm("#{APACHE_PATH}/sites-available/#{name}.custom")
     end
  
-    def delete_mongrel_files
+    def destroy_mongrel_files
       base_path = "#{APACHE_PATH}/conf.d"
  
       FileUtils.rm("/etc/mongrel_cluster/#{name}.yml")
