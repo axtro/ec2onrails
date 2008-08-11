@@ -41,7 +41,7 @@ application = ARGV.flags.application || 'app'
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
 bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir || "database"
-@s3 = Ec2onrails::S3Helper.new(bucket, dir)
+@s3 = Ec2onrails::S3Helper.new(bucket, dir, application)
 @mysql = Ec2onrails::MysqlHelper.new(application)
 @temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 if File.exists?(@temp_dir)
