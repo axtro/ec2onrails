@@ -26,19 +26,18 @@ require "#{File.dirname(__FILE__)}/utils"
 module Ec2onrails
   class MysqlHelper
 
-    DEFAULT_CONFIG_FILE = "/mnt/app/current/config/database.yml"
-
     attr_accessor :database
     attr_accessor :user
     attr_accessor :password
 
-    def initialize(config_file = DEFAULT_CONFIG_FILE, rails_env = Utils.rails_env)
-      @rails_env = rails_env
-      load_db_config(config_file)
+    def initialize(application, rails_env = nil)
+      rails_env ||= Utils.rails_env(application)
+
+      load_db_config("/mnt/{application}/current/config.database.yml", rails_env)
     end
 
-    def load_db_config(config_file)
-      db_config = YAML::load(ERB.new(File.read(config_file)).result)[@rails_env]
+    def load_db_config(config_file, rails_env)
+      db_config = YAML::load(ERB.new(File.read(config_file)).result)[rails_env]
       @database = db_config['database']
       @user = db_config['username']
       @password = db_config['password']

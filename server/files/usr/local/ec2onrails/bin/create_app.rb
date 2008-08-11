@@ -18,29 +18,31 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#    This script creates a new application. It creates folders and 
+#    configures apache, mongrel and mysql. 
 
-# This script runs a command with RAILS_ENV set to the value that's specified
-# in the the mongrel_cluster config file. If a command isn't given as an 
-# argument it simply prints the value of RAILS_ENV
-# you can pass --application if you have multiple applications
+require "rubygems"
+require "optiflag"
+require "fileutils"
+require "#{File.dirname(__FILE__)}/../lib/app_helper"
 
-require "yaml"
-
-cmds = []
-application = "app"
-
-if ARGV.length > 1 && ARGV.first == '--application'
- application = ARGV[1]
- cmds = ARGV[2..ARGV.length-2] if ARGV.length > 2
-else
- cmds = ARGV
+module CommandLineArgs extend OptiFlagSet
+  flag "application"
+  flag "servername"
+  optional_flag "env"
+  and_process!
 end
 
-rails_env = YAML::load_file("/etc/mongrel_cluster/#{application}.yml")["environment"]
+application = ARGV.flags.application
+server_name = ARGV.flags.servername
+rails_env = ARGV.flags.env || 'production'
 
-if cmds.any?
-  result = system "env RAILS_ENV=#{rails_env} #{cmds.join(' ')}"
-  raise("error: #{$?}") unless result
-else
-  puts rails_env
+@app = Ec2onrails::AppHelper.new(application)
+
+begin
+
+ @app.create_directory
+ @app.create_apache_files(server_name)
+ @app.create_mongrel_files(rails_env)
+ 
 end

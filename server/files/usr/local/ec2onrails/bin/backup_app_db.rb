@@ -29,6 +29,7 @@ require "#{File.dirname(__FILE__)}/../lib/s3_helper"
 require "#{File.dirname(__FILE__)}/../lib/utils"
 
 module CommandLineArgs extend OptiFlagSet
+  optional_flag "application"
   optional_flag "bucket"
   optional_flag "dir"
   optional_switch_flag "incremental"
@@ -36,11 +37,12 @@ module CommandLineArgs extend OptiFlagSet
   and_process!
 end
 
+application = ARGV.flags.application || 'app'
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
 bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir || "database"
 @s3 = Ec2onrails::S3Helper.new(bucket, dir)
-@mysql = Ec2onrails::MysqlHelper.new
+@mysql = Ec2onrails::MysqlHelper.new(application)
 @temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
