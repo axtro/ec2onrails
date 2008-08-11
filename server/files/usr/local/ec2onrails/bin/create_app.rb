@@ -24,28 +24,19 @@
 require "rubygems"
 require "optiflag"
 require "fileutils"
-require "#{File.dirname(__FILE__)}/../lib/mysql_helper"
 require "#{File.dirname(__FILE__)}/../lib/app_helper"
-require "#{File.dirname(__FILE__)}/../lib/utils"
 
 module CommandLineArgs extend OptiFlagSet
   flag "application"
   flag "servername"
   optional_flag "env"
-  optional_flag "dbname"
-  optional_flag "dbuser"
-  optional_flag "dbpassword"
   and_process!
 end
 
 application = ARGV.flags.application
 server_name = ARGV.flags.servername
 rails_env = ARGV.flags.env || 'production'
-db_name = ARGV.flags.dbname
-db_user = ARGV.flags.dbuser
-db_password = ARGV.flags.dbpassword
 
-@mysql = Ec2onrails::MysqlHelper.from_settings(db_name, db_user, db_password)
 @app = Ec2onrails::AppHelper.new(application)
 
 begin
@@ -53,6 +44,5 @@ begin
  @app.create_directory
  @app.create_apache_files(server_name)
  @app.create_mongrel_files(rails_env)
- @mysql.create_database if db_name
  
 end

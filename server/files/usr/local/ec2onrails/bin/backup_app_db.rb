@@ -42,7 +42,7 @@ application = ARGV.flags.application || 'app'
 bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir || "database"
 @s3 = Ec2onrails::S3Helper.new(bucket, dir)
-@mysql = Ec2onrails::MysqlHelper.from_config(application)
+@mysql = Ec2onrails::MysqlHelper.new(application)
 @temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"

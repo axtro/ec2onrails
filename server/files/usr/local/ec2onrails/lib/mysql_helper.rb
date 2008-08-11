@@ -30,20 +30,17 @@ module Ec2onrails
     attr_accessor :user
     attr_accessor :password
 
-    def self.from_config(application, rails_env = nil)
+    def initialize(application, rails_env = nil)
       rails_env ||= Utils.rails_env(application)
 
-      returning MysqlHelper.new do |helper|
-        helper.load_db_config("/mnt/{application}/current/config.database.yml", rails_env)
-      end
+      load_db_config("/mnt/{application}/current/config.database.yml", rails_env)
     end
 
-    def self.from_settings(database, user, password)
-      returning MysqlHelper.new() do |helper|
-        helper.database = database
-        helper.user = user
-        helper.password = password
-      end
+    def load_db_config(config_file, rails_env)
+      db_config = YAML::load(ERB.new(File.read(config_file)).result)[rails_env]
+      @database = db_config['database']
+      @user = db_config['username']
+      @password = db_config['password']
     end
 
     def execute_sql(sql)
@@ -76,27 +73,5 @@ module Ec2onrails
       cmd += " -p'#{@password}' " unless @password.nil?
       Utils.run cmd
     end
-
-    def create_database
-      sql  = "create database #{@database};"
-      sql += "create user #{@user};" 
-      sql += "set password for #{@user} = password(\"#{@password}\");"
-      sql += "grant all on #{@database}.* to #{@user};"
-
-      Utils.run "mysql -u root -e '#{sql}'"
-    end
-
-  private
-
-    def initialize()
-    end
-
-    def load_db_config(config_file, rails_env)
-      db_config = YAML::load(ERB.new(File.read(config_file)).result)[rails_env]
-      @database = db_config['database']
-      @user = db_config['username']
-      @password = db_config['password']
-    end
-
   end
 end
