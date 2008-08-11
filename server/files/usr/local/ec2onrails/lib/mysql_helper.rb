@@ -33,7 +33,7 @@ module Ec2onrails
     def initialize(application, rails_env = nil)
       rails_env ||= Utils.rails_env(application)
 
-      load_db_config("/mnt/{application}/current/config.database.yml", rails_env)
+      load_db_config("/mnt/#{application}/current/config/database.yml", rails_env)
     end
 
     def load_db_config(config_file, rails_env)
