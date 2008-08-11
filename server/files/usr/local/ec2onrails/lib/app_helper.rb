@@ -124,7 +124,7 @@ module Ec2onrails
           break
         end
       end
-      return 0
+      return 1
     end
 
   end

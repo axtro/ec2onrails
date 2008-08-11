@@ -32,18 +32,18 @@ module CommandLineArgs extend OptiFlagSet
   flag "application"
   flag "servername"
   optional_flag "env"
-  optional_flag "db_name"
-  optional_flag "db_user"
-  optional_flag "db_password"
+  optional_flag "dbname"
+  optional_flag "dbuser"
+  optional_flag "dbpassword"
   and_process!
 end
 
 application = ARGV.flags.application
 server_name = ARGV.flags.servername
 rails_env = ARGV.flags.env || 'production'
-db_name = ARGV.flags.db_name
-db_user = ARGV.flags.db_user
-db_password = ARGV.flags.db_password
+db_name = ARGV.flags.dbname
+db_user = ARGV.flags.dbuser
+db_password = ARGV.flags.dbpassword
 
 @mysql = Ec2onrails::MysqlHelper.from_settings(db_name, db_user, db_password)
 @app = Ec2onrails::AppHelper.new(application)
