@@ -276,7 +276,34 @@ Capistrano::Configuration.instance.load do
         run "/usr/local/ec2onrails/bin/backup_app_db.rb --application #{application} --reset"
       end
     end
-    
+   
+    namespace :app do
+
+      desc <<-DESC
+        Create a new aplication. Adds a new application folder. 
+	Configures apache, mongrel and monit.
+      DESC
+      task :create, :roles => all_admin_roles do
+        domain = nil
+	while domain.blank?
+          domain = Capistrano::CLI.ui.ask('Please enter a domain name. e.g. domain.com or test.domain.com:1234')
+	end
+
+        run "/usr/local/ec2onrails/bin/create_app.rb --application #{application} --domain '#{domain}'"
+      end
+
+      desc <<-DESC
+        Destroys an application. Removes the application folder, files 
+	and all application specific configuration. 
+	Database is NOT removed. Run ec2onrails:db:drop BEFORE calling 
+	ec2onrails:app:destroy, if you wish to permanently remove the db.
+      DESC
+      task :destroy, :roles => all_admin_roles do
+        run "/usr/local/ec2onrails/bin/destroy_app.rb --application #{application}"
+      end
+
+    end
+
     namespace :server do
       desc <<-DESC
         Tell the servers what roles they are in. This configures them with \
@@ -454,23 +481,6 @@ Capistrano::Configuration.instance.load do
         sudo "a2ensite default-ssl"
         run_init_script("apache2", "restart")
       end
-
-      desc <<-DESC
-        Create a new aplication. Adds a new application folder, 
-	database and database user. Configures apache, mongrel, 
-	mysql and monit.
-      DESC
-      task :create_app, :roles => all_admin_roles do
-      end
-
-      desc <<-DESC
-        Removes the application. You can choose to 
-	keep to the database or remove it. Removes all 
-	application specific configuration.
-      DESC
-      task :remove_app, :roles => all_admin_roles do
-      end
-
     end
     
   end
