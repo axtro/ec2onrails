@@ -26,21 +26,21 @@ require "#{File.dirname(__FILE__)}/utils"
 module Ec2onrails
   class S3Helper
 
-    DEFAULT_CONFIG_FILE = "/mnt/app/current/config/s3.yml"
-  
     # make attributes available for specs
     attr_accessor :bucket
     attr_accessor :dir
+    attr_accessor :application
     attr_accessor :config_file
     attr_accessor :rails_env
     attr_accessor :aws_access_key
     attr_accessor :aws_secret_access_key
     attr_accessor :bucket
 
-    def initialize(bucket, dir, config_file = DEFAULT_CONFIG_FILE, rails_env = Utils.rails_env)
+    def initialize(bucket, dir, application = nil, rails_env = nil)
       @dir = dir
-      @config_file = config_file
-      @rails_env = rails_env
+      @application = application || 'app'
+      @config_file = "/mnt/#{@application}/current/config/s3.yml"
+      @rails_env = rails_env || Utils.rails_env(@application)
       load_s3_config
       @bucket = bucket || "#{@bucket_base_name}-#{Ec2onrails::Utils.hostname}"
       AWS::S3::Base.establish_connection!(:access_key_id => @aws_access_key, :secret_access_key => @aws_secret_access_key, :use_ssl => true)
