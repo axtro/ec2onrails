@@ -57,16 +57,6 @@ module Ec2onrails
     # domain string is used by erb template
     def create_apache_files(domain_string)
      base_path = "#{APACHE_PATH}/sites-available"
-     index = 0
-   
-     # determine last number  
-     Dir.glob("#{APACHE_PATH}/sites-enabled/*").each do |file|
-       match = Pathname.new(file).basename.to_s.match(/\d+/)
-       if match
-         i = match[0].to_i
-         index = i + 1 if i >= index
-       end
-     end
      
      # create the main config file 
      Utils.generate_template("#{TEMPLATE_PATH}/application.erb", "#{base_path}/#{name}", binding)
@@ -78,13 +68,13 @@ module Ec2onrails
      FileUtils.touch("#{base_path}/#{name}.custom")
  
      # link the folders
-     File.symlink("#{base_path}/#{name}", "#{APACHE_PATH}/sites-enabled/#{sprintf("%03d",application_index)}-#{name}")
+     File.symlink("#{base_path}/#{name}", "#{APACHE_PATH}/sites-enabled/#{sprintf("%03d",application_count)}-#{name}")
     end
 
     # rails_env is passed to the template
     def create_mongrel_files(rails_env)
       base_path = "#{APACHE_PATH}/conf.d"
-      start_port = (START_CLUSTER_PORT + (application_index*CLUSTER_PORT_OFFSET))
+      start_port = (START_CLUSTER_PORT + (application_count*CLUSTER_PORT_OFFSET))
       ports = (start_port..(start_port+MONGREL_INSTANCES-1))
  
       Utils.generate_template("#{TEMPLATE_PATH}/mongrel_cluster.yml.erb", 
@@ -123,12 +113,16 @@ module Ec2onrails
         name = Pathname.new(file).basename.to_s
         match = name.match(/^(\d+)-(.*)$/)
 
-        if match && match[2] == name
-          return match[1].to_i
+        if match && match[1] == name
+          return match[0].to_i
           break
         end
       end
-      return 1
+      raise 'Application not found'
+    end
+
+    def application_count
+      Dir.glob("#{APACHE_PATH}/sites-enabled/*").length
     end
 
   end
