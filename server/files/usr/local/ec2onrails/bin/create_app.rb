@@ -44,5 +44,6 @@ begin
  @app.create_directory
  @app.create_apache_files(domain)
  @app.create_mongrel_files(rails_env)
+ @app.create_monitrc_file
  
 end

@@ -40,5 +40,6 @@ begin
  @app.destroy_directory
  @app.destroy_apache_files
  @app.destroy_mongrel_files
+ @app.destroy_monitrc_file
  
 end

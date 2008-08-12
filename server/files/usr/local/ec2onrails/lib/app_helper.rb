@@ -26,6 +26,7 @@ module Ec2onrails
   class AppHelper
     ROOT_PATH = '/mnt'
     APACHE_PATH = '/etc/apache2'
+    MONIT_PATH = '/etc/monit'
     MONGREL_INSTANCES = 6
     BALANCE_MANAGER_START_PORT = 8080
     START_CLUSTER_PORT = 8000
@@ -37,8 +38,10 @@ module Ec2onrails
     attr_reader :application_path
 
     def initialize(name)
-     @name = name
-     @application_path = "#{ROOT_PATH}/#{@name}"
+      @name = name
+      @application_path = "#{ROOT_PATH}/#{@name}"
+      @start_port = (START_CLUSTER_PORT + (application_count*CLUSTER_PORT_OFFSET))
+      @ports = (@start_port..(@start_port+MONGREL_INSTANCES-1))
     end
 
     def create_directory
@@ -74,8 +77,6 @@ module Ec2onrails
     # rails_env is passed to the template
     def create_mongrel_files(rails_env)
       base_path = "#{APACHE_PATH}/conf.d"
-      start_port = (START_CLUSTER_PORT + (application_count*CLUSTER_PORT_OFFSET))
-      ports = (start_port..(start_port+MONGREL_INSTANCES-1))
  
       Utils.generate_template("#{TEMPLATE_PATH}/mongrel_cluster.yml.erb", 
                               "/etc/mongrel_cluster/#{name}.yml", binding)
@@ -85,6 +86,11 @@ module Ec2onrails
 
       Utils.generate_template("#{TEMPLATE_PATH}/proxy_frontend.conf.erb", 
                               "#{base_path}/#{name}.proxy_frontend.conf", binding)
+    end
+
+    def create_monitrc_file
+      Utils.generate_template("#{TEMPLATE_PATH}/monitrc.erb", 
+                              "#{MONIT_PATH}/#{name}.monitrc", binding)
     end
 
     def destroy_directory
@@ -104,6 +110,10 @@ module Ec2onrails
       FileUtils.rm("/etc/mongrel_cluster/#{name}.yml")
       FileUtils.rm("#{base_path}/#{name}.proxy_cluster.conf")
       FileUtils.rm("#{base_path}/#{name}.proxy_frontend.conf")
+    end
+
+    def destroy_monitrc_file
+      FileUtils.rm("#{MONIT_PATH}/#{name}.monitrc")
     end
 
   private
