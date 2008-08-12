@@ -29,5 +29,13 @@ module Ec2onrails
       end
       role.select{|s| s.options == options}.collect{|s| s.host}
     end
+
+    def start_mongrel(application)
+      sudo "/usr/local/ec2onrails/bin/mongrel_start #{application}"
+    end
+
+    def stop_mongrel(application)
+      sudo "/usr/local/ec2onrails/bin/mongrel_stop #{application}"
+    end
   end
 end

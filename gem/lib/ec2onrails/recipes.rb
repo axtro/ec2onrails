@@ -63,7 +63,7 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :start, :roles => :app_admin do
-      run_init_script("mongrel", "start")
+      start_mongrel(application)
       run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
       sudo "monit -g #{application} monitor all"
     end
@@ -74,7 +74,7 @@ Capistrano::Configuration.instance.load do
     DESC
     task :stop, :roles => :app_admin do
       sudo "monit -g #{application} unmonitor all"
-      run_init_script("mongrel", "stop")
+      stop_mongrel(application)
     end
     
     desc <<-DESC
@@ -284,21 +284,20 @@ Capistrano::Configuration.instance.load do
 	Configures apache, mongrel and monit.
       DESC
       task :create, :roles => all_admin_role_names do
-        domain = nil
-	while domain.nil? || domain.empty?
+        set(:domain) do
           domain = Capistrano::CLI.ui.ask('Please enter a domain name. e.g. domain.com or test.domain.com:1234 or *:4010')
-	end
-
+        end
         sudo "/usr/local/ec2onrails/bin/create_app.rb --application #{application} --domain '#{domain}'"
       end
 
       desc <<-DESC
         Destroys an application. Removes the application folder, files 
-	and all application specific configuration. 
-	Database is NOT removed. Run ec2onrails:db:drop BEFORE calling 
-	ec2onrails:app:destroy, if you wish to permanently remove the db.
+        and all application specific configuration. 
+        Database is NOT removed. Run ec2onrails:db:drop BEFORE calling 
+        ec2onrails:app:destroy, if you wish to permanently remove the db.
       DESC
       task :destroy, :roles => all_admin_role_names do
+        stop_mongrel(application)
         sudo "/usr/local/ec2onrails/bin/destroy_app.rb --application #{application}"
       end
 
