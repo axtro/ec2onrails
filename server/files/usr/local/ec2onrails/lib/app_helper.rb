@@ -110,11 +110,11 @@ module Ec2onrails
 
     def application_index
       Dir.glob("#{APACHE_PATH}/sites-enabled/*").each do |file|
-        name = Pathname.new(file).basename.to_s
-        match = name.match(/^(\d+)-(.*)$/)
+        filename = Pathname.new(file).basename.to_s
+        match = filename.match(/^(\d+)-(.*)$/)
 
-        if match && match[1] == name
-          return match[0].to_i
+        if match && match[2] == @name 
+          return match[1].to_i
           break
         end
       end
