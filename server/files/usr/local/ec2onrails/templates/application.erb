@@ -1,6 +1,6 @@
 # Based on http://blog.codahale.com/2006/06/19/time-for-a-grown-up-server-rails-mongrel-apache-capistrano-and-you/
 #  
-<VirtualHost *>
+<VirtualHost <%= domain_string %>>
   ServerName <%= domain_string %>
      
   Include /etc/apache2/sites-available/<%= name %>.custom

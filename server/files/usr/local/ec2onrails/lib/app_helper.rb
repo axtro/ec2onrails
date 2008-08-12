@@ -31,6 +31,7 @@ module Ec2onrails
     START_CLUSTER_PORT = 8000
     CLUSTER_PORT_OFFSET = 100
     USER_NAME = 'app' # TODO: need to create a user for each app to be more secure
+    TEMPLATE_PATH = "#{File.dirname(__FILE__)}/../templates"
 
     attr_accessor :name
     attr_reader :application_path
@@ -68,10 +69,10 @@ module Ec2onrails
      end
      
      # create the main config file 
-     Utils.generate_template("templates/application.erb", "#{base_path}/#{name}", binding)
+     Utils.generate_template("#{TEMPLATE_PATH}/application.erb", "#{base_path}/#{name}", binding)
  
      # create a config with common setup
-     Utils.generate_template("templates/common.erb", "#{base_path}/#{name}.common", binding)
+     Utils.generate_template("#{TEMPLATE_PATH}/common.erb", "#{base_path}/#{name}.common", binding)
  
      # create empty config file for custom configuration
      FileUtils.touch("#{base_path}/#{name}.custom")
@@ -86,9 +87,14 @@ module Ec2onrails
       start_port = (START_CLUSTER_PORT + (application_index*CLUSTER_PORT_OFFSET))
       ports = (start_port..(start_port+MONGREL_INSTANCES-1))
  
-      Utils.generate_template("templates/mongrel_cluster.yml.erb", "/etc/mongrel_cluster/#{name}.yml", binding)
-      Utils.generate_template("templates/proxy_cluster.conf.erb", "#{base_path}/#{name}.proxy_cluster.conf", binding)
-      Utils.generate_template("templates/proxy_frontend.conf.erb", "#{base_path}/#{name}.proxy_frontend.conf", binding)
+      Utils.generate_template("#{TEMPLATE_PATH}/mongrel_cluster.yml.erb", 
+                              "/etc/mongrel_cluster/#{name}.yml", binding)
+
+      Utils.generate_template("#{TEMPLATE_PATH}/proxy_cluster.conf.erb", 
+                              "#{base_path}/#{name}.proxy_cluster.conf", binding)
+
+      Utils.generate_template("#{TEMPLATE_PATH}/proxy_frontend.conf.erb", 
+                              "#{base_path}/#{name}.proxy_frontend.conf", binding)
     end
 
     def destroy_directory
