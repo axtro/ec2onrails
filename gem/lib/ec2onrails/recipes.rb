@@ -63,9 +63,9 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :start, :roles => :app_admin do
-      run_init_script("mongrel", "start")
+      start_mongrel(application)
       run "sleep 30" # give the service 30 seconds to start before attempting to monitor it
-      sudo "monit -g app monitor all"
+      sudo "monit -g #{application} monitor all"
     end
     
     desc <<-DESC
@@ -73,8 +73,8 @@ Capistrano::Configuration.instance.load do
       /etc/init.d/mongrel
     DESC
     task :stop, :roles => :app_admin do
-      sudo "monit -g app unmonitor all"
-      run_init_script("mongrel", "stop")
+      sudo "monit -g #{application} unmonitor all"
+      stop_mongrel(application)
     end
     
     desc <<-DESC
@@ -255,7 +255,7 @@ Capistrano::Configuration.instance.load do
         "database-archive/<timestamp>/dump.sql.gz".
       DESC
       task :archive, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --application #{application} --bucket #{cfg[:archive_to_bucket]} --dir #{cfg[:archive_to_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -264,7 +264,7 @@ Capistrano::Configuration.instance.load do
         expected to be the default, "mysqldump.sql.gz".
       DESC
       task :restore, :roles => :db do
-        run "/usr/local/ec2onrails/bin/restore_app_db.rb --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
+        run "/usr/local/ec2onrails/bin/restore_app_db.rb --application #{application} --bucket #{cfg[:restore_from_bucket]} --dir #{cfg[:restore_from_bucket_subdir]}"
       end
       
       desc <<-DESC
@@ -273,10 +273,36 @@ Capistrano::Configuration.instance.load do
         make sense).
       DESC
       task :init_backup, :roles => :db do
-        run "/usr/local/ec2onrails/bin/backup_app_db.rb --reset"
+        run "/usr/local/ec2onrails/bin/backup_app_db.rb --application #{application} --reset"
       end
     end
-    
+   
+    namespace :app do
+
+      desc <<-DESC
+        Create a new aplication. Adds a new application folder. 
+	Configures apache, mongrel and monit.
+      DESC
+      task :create, :roles => all_admin_role_names do
+        set(:domain) do
+          domain = Capistrano::CLI.ui.ask('Please enter a domain name. e.g. domain.com or test.domain.com:1234 or *:4010')
+        end
+        sudo "/usr/local/ec2onrails/bin/create_app.rb --application #{application} --domain '#{domain}'"
+      end
+
+      desc <<-DESC
+        Destroys an application. Removes the application folder, files 
+        and all application specific configuration. 
+        Database is NOT removed. Run ec2onrails:db:drop BEFORE calling 
+        ec2onrails:app:destroy, if you wish to permanently remove the db.
+      DESC
+      task :destroy, :roles => all_admin_role_names do
+        stop_mongrel(application)
+        sudo "/usr/local/ec2onrails/bin/destroy_app.rb --application #{application}"
+      end
+
+    end
+
     namespace :server do
       desc <<-DESC
         Tell the servers what roles they are in. This configures them with \
@@ -305,7 +331,7 @@ Capistrano::Configuration.instance.load do
       DESC
       task :set_rails_env, :roles => all_admin_role_names do
         rails_env = fetch(:rails_env, "production")
-        sudo "/usr/local/ec2onrails/bin/set_rails_env #{rails_env}"
+        sudo "/usr/local/ec2onrails/bin/set_rails_env --application #{application} #{rails_env}"
       end
       
       desc <<-DESC
