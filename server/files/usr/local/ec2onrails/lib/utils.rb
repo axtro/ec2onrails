@@ -1,3 +1,5 @@
+require 'erb'
+
 module Ec2onrails
   module Utils
     def self.run(command)
@@ -6,11 +8,11 @@ module Ec2onrails
     end
   
     def self.rails_env(application)
-      `/usr/local/ec2onrails/bin/rails_env --application #{application}`.strip
+      run("/usr/local/ec2onrails/bin/rails_env --application #{application}").strip
     end
     
     def self.hostname
-      `hostname -s`.strip
+      run('hostname -s').strip
     end
 
     def self.generate_template(template_path, destination_path, template_binding)
