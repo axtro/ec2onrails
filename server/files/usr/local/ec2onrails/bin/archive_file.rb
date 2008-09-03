@@ -28,17 +28,19 @@ require "#{File.dirname(__FILE__)}/../lib/utils"
 include FileUtils
 
 module CommandLineArgs extend OptiFlagSet
+  optional_flag "application"
   optional_flag "bucket"
   optional_flag "dir"
   optional_flag "file"
   and_process!
 end
 
+application = ARGV.flags.application || 'app'
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
 bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir
 file = ARGV.flags.file
 exit unless File.exists?(file)
 
-@s3 = Ec2onrails::S3Helper.new(bucket, dir)
+@s3 = Ec2onrails::S3Helper.new(bucket, dir, application)
 @s3.store_file(file)

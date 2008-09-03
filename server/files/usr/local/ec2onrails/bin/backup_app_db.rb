@@ -31,6 +31,7 @@ require 'aws/s3'
 include AWS::S3
 
 module CommandLineArgs extend OptiFlagSet
+  optional_flag "application"
   optional_flag "bucket"
   optional_flag "dir"
   optional_switch_flag "incremental"
@@ -38,12 +39,13 @@ module CommandLineArgs extend OptiFlagSet
   and_process!
 end
 
+application = ARGV.flags.application || 'app'
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
 defaultDir = "database/current"
 defaultTimestampedDir = "database/#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}"
-dir = ARGV.flags.dir || defaultDir
-@s3 = Ec2onrails::S3Helper.new(ARGV.flags.bucket, dir)
-@mysql = Ec2onrails::MysqlHelper.new
+dir = ARGV.flags.dir || "database"
+@s3 = Ec2onrails::S3Helper.new(ARGV.flags.bucket, dir, application)
+@mysql = Ec2onrails::MysqlHelper.new(application)
 @temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"

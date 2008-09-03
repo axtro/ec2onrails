@@ -1,0 +1,9 @@
+--- 
+cwd: /mnt/<%= name %>/current
+port: "<%= @start_port %>"
+environment: <%= rails_env %>
+pid_file: log/mongrel.pid
+servers: <%= MONGREL_INSTANCES %> 
+daemon: true
+user: <%= USER_NAME %>
+group: <%= USER_NAME %>

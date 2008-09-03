@@ -4,5 +4,12 @@
 export PATH
 export RUBYLIB
 
-mongrel_rails cluster::stop -C /etc/mongrel_cluster/app.yml $*
+APP='app'
+
+if [ $1 ]
+then
+ APP=$1
+fi
+
+mongrel_rails cluster::stop -C '/etc/mongrel_cluster/'$APP'.yml' $*
 

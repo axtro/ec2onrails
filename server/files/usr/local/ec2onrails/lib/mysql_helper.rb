@@ -26,23 +26,18 @@ require "#{File.dirname(__FILE__)}/utils"
 module Ec2onrails
   class MysqlHelper
 
-    DEFAULT_CONFIG_FILE = "/mnt/app/current/config/database.yml"
-
     attr_accessor :database
     attr_accessor :user
     attr_accessor :password
 
-    def initialize(config_file = DEFAULT_CONFIG_FILE, rails_env = Utils.rails_env)
-      @rails_env = rails_env
-      load_db_config(config_file)
+    def initialize(application, rails_env = nil)
+      rails_env ||= Utils.rails_env(application)
+
+      load_db_config("/mnt/#{application}/current/config/database.yml", rails_env)
     end
 
-    def load_db_config(config_file)
-      db_config = YAML::load(ERB.new(File.read(config_file)).result)
-      if db_config && db_config[@rails_env].nil?
-        puts "the rails environment '#{@rails_env}' was not found in this db onfig file: #{config_file}"
-      end
-      db_config = db_config[@rails_env]
+    def load_db_config(config_file, rails_env)
+      db_config = YAML::load(ERB.new(File.read(config_file)).result)[rails_env]
       @database = db_config['database']
       @user = db_config['username']
       @password = db_config['password']
@@ -54,25 +49,6 @@ module Ec2onrails
       cmd = %{mysql -u #{@user} -e "#{sql}"}
       cmd += " -p'#{@password}' " unless @password.nil?
       Utils.run cmd
-    end
-    
-    def execute
-      require "mysql"
-      
-      begin
-        # connect to the MySQL server
-        dbh = Mysql.real_connect("localhost", "#{@user}", "#{@password}", "#{@database}")
-        yield dbh
-      rescue Mysql::Error => e
-        puts "Error code: #{e.errno}"
-        puts "Error message: #{e.error}"
-        puts "Error SQLSTATE: #{e.sqlstate}" if e.respond_to?("sqlstate")
-      ensure
-        # disconnect from server
-        dbh.close if dbh
-      end
-      
-      
     end
     
     def dump(out_file, reset_logs)
