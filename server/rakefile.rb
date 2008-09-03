@@ -87,7 +87,8 @@ end
   "rails",
   "rails -v 2.0.2",
   "rails -v 1.2.6",
-  "rake"
+  "rake",
+  "archive/tar/minitar"
 ]
 
 @build_root = "/mnt/build"
