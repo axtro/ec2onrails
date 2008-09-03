@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-# Downloads and untars a backup created with axtro_backup.rb from a given directory from S3.
+# Downloads and untars a backup created with backup_files.rb from a given directory from S3.
 # Takes 2 required and 2 optional flags:
 #   -destDir          The full path to the dir where the downloaded file should be extracted
 #   -dir              The directory inside the bucket where the timestamped backups can be found
@@ -29,7 +29,7 @@ end
 
 dir = ARGV.flags.dir
 @s3 = Ec2onrails::S3Helper.new(ARGV.flags.bucket, dir)
-@temp_dir = "/mnt/tmp/axtro-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
+@temp_dir = "/mnt/tmp/backup-files-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
   exit

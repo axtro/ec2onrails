@@ -29,7 +29,7 @@ end
 bucket = ARGV.flags.bucket
 dir = ARGV.flags.dir
 @s3 = Ec2onrails::S3Helper.new(bucket, dir)
-@temp_dir = "/mnt/tmp/axtro-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
+@temp_dir = "/mnt/tmp/backup-files-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 local_file = File.join(@temp_dir, "#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}.tar")
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
