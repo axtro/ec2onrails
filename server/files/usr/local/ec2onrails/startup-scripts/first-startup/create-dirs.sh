@@ -21,7 +21,7 @@
 make_dir() {
   mkdir -p $1
   if [ $2 ] ; then
-    chown $2 $1
+    chown -R $2 $1
   fi
 }
 

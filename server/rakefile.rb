@@ -63,8 +63,6 @@ end
   mysql-server
   nano
   openssh-server
-  php5
-  php5-mysql
   postfix
   rdoc
   ri
@@ -75,10 +73,21 @@ end
   unzip
   vim
   wget
+  xfsprogs
 )
 
+# HACK: some packages just fail with apt-get but work fine
+#       with aptitude.  These generally are virtual packages
+@aptitude_packages = %w(
+  libmysqlclient-dev
+)
+
+# NOTE: the amazon-ec2 gem is now at github, maintained by
+#       grempe-amazon-ec2.  Will move back to regular amazon-ec2
+#       gem if/when he cuts a new release with volume and snapshot
+#       support included
 @rubygems = [
-  "amazon-ec2",
+  "grempe-amazon-ec2",
   "aws-s3",
   "memcache-client",
   "mongrel",
@@ -106,21 +115,26 @@ end
 desc "Use apt-get to install required packages inside the image's filesystem"
 task :install_packages do |t|
   unless_completed(t) do
-    #ENV['DEBIAN_FRONTEND'] = 'noninteractive'
+    ENV['DEBIAN_FRONTEND'] = 'noninteractive'
     ENV['LANG'] = ''
     run_chroot "apt-get install -y #{@packages.join(' ')}"
     run_chroot "apt-get clean"
+    
+    #lets run the aptitude-only packages
+    run_chroot "aptitude install -y #{@aptitude_packages.join(' ')}"
+    run_chroot "aptitude clean"
   end
 end
 
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://rubyforge.org/frs/download.php/35283/rubygems-1.1.1.tgz && tar zxf rubygems-1.1.1.tgz'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.1.1 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/38646/rubygems-1.2.0.tgz && tar zxf rubygems-1.2.0.tgz'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.2.0 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
+    run_chroot "gem sources -a http://gems.github.com"
     @rubygems.each do |gem|
       run_chroot "gem install #{gem} --no-rdoc --no-ri"
     end
@@ -130,7 +144,7 @@ end
 desc "Compile and install monit"
 task :install_monit => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://www.tildeslash.com/monit/dist/monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp && tar xzvf monit-4.10.1.tar.gz'"
     run_chroot "sh -c 'cd /tmp/monit-4.10.1 && ./configure  --sysconfdir=/etc/monit/ --localstatedir=/var/run && make && make install'"
   end
@@ -175,7 +189,7 @@ task :configure => [:install_gems, :install_monit] do |t|
       run_chroot "ln -sf /mnt/log/#{f} /var/log/#{f}"
     end
     
-    touch "#{@fs_dir}/ec2onrails-first-boot"
+    run "touch #{@fs_dir}/ec2onrails-first-boot"
     
     # TODO find out the most correct solution here, there seems to be a bug in
     # both feisty and gutsy where the dhcp daemon runs as dhcp but the dir

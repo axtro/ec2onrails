@@ -77,7 +77,6 @@ begin
       end
     end
     @s3.store_file file
-    @s3.delete_files("mysql-bin")
   end
 ensure
   FileUtils.rm_rf(@temp_dir)
