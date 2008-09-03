@@ -27,6 +27,8 @@ require "fileutils"
 require "#{File.dirname(__FILE__)}/../lib/mysql_helper"
 require "#{File.dirname(__FILE__)}/../lib/s3_helper"
 require "#{File.dirname(__FILE__)}/../lib/utils"
+require 'aws/s3'
+include AWS::S3
 
 module CommandLineArgs extend OptiFlagSet
   optional_flag "bucket"
@@ -37,9 +39,10 @@ module CommandLineArgs extend OptiFlagSet
 end
 
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
-bucket = ARGV.flags.bucket
-dir = ARGV.flags.dir || "database"
-@s3 = Ec2onrails::S3Helper.new(bucket, dir)
+defaultDir = "database/current"
+defaultTimestampedDir = "database/#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}"
+dir = ARGV.flags.dir || defaultDir
+@s3 = Ec2onrails::S3Helper.new(ARGV.flags.bucket, dir)
 @mysql = Ec2onrails::MysqlHelper.new
 @temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
 if File.exists?(@temp_dir)
@@ -60,6 +63,19 @@ begin
     # Full backup
     file = "#{@temp_dir}/dump.sql.gz"
     @mysql.dump(file, ARGV.flags.reset)
+    if !ARGV.flags.bucket and ARGV.flags.reset and dir == defaultDir
+      # Requested a binary log reset and no special target dir nor bucket specified. To maintain older database backups, rename the old dir on S3 to a timestamped name.
+      begin
+        Bucket.find(@s3.bucket, {:prefix => dir}).objects.map do |o|
+          # The following sanity check is needed as Bucket.find sometimes returns objects without the defined prefix.
+          if o.key.index(dir) == 0
+            S3Object.rename(o.key, "#{defaultTimestampedDir}/#{File.basename(o.key)}", @s3.bucket)
+          end
+        end
+      rescue
+        # No current backup found.
+      end
+    end
     @s3.store_file file
     @s3.delete_files("mysql-bin")
   end
