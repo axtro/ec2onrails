@@ -168,18 +168,6 @@ task :configure => [:install_gems, :install_monit] do |t|
     run_chroot "/usr/sbin/adduser admin adm"
     run_chroot "/usr/sbin/addgroup sudoers"
     
-    File.open("#{@fs_dir}/usr/local/sbin/ec2-get-credentials", 'a') do |f|
-      f << <<-END
-        mkdir -p -m 700 /home/app/.ssh
-        cp /root/.ssh/authorized_keys /home/app/.ssh
-        chown -R app:app /home/app/.ssh
-
-        mkdir -p -m 700 /home/admin/.ssh
-        cp /root/.ssh/authorized_keys /home/admin/.ssh
-        chown -R admin:admin /home/admin/.ssh
-        END
-    end
-    
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/root/.bashrc"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/app/.bashrc"
     run "echo '. /usr/local/ec2onrails/config' >> #{@fs_dir}/home/admin/.bashrc"
