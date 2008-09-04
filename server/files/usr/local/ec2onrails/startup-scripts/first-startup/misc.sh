@@ -22,3 +22,9 @@
 chmod 777 /tmp
 
 cp /etc/hosts /etc/hosts.original
+
+#make sure the monitrc files have the correct permissions set
+chmod 700 /etc/monit/*
+
+# Rebuild postfix db
+newaliases
