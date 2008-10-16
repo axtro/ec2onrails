@@ -1,3 +1,4 @@
 - Merge multi_app work when done
 - Add munin
+	- See http://onrails.org/articles/2007/08/31/monitoring-rails-performance-with-munin-and-a-mongrel for a munin plugin to show Rails response times
 - Check if EBS is a viable alternative for app file storage
