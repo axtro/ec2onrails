@@ -43,7 +43,7 @@ application = ARGV.flags.application || 'app'
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
 defaultDir = "database/current"
 defaultTimestampedDir = "database/#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}"
-dir = ARGV.flags.dir || "database"
+dir = ARGV.flags.dir || defaultDir
 @s3 = Ec2onrails::S3Helper.new(ARGV.flags.bucket, dir, application)
 @mysql = Ec2onrails::MysqlHelper.new(application)
 @temp_dir = "/mnt/tmp/ec2onrails-backup-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"

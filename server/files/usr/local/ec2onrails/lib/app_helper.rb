@@ -71,7 +71,7 @@ module Ec2onrails
      FileUtils.touch("#{base_path}/#{name}.custom")
  
      # link the folders
-     File.symlink("#{base_path}/#{name}", "#{APACHE_PATH}/sites-enabled/#{sprintf("%03d",application_count)}-#{name}")
+     File.symlink("#{base_path}/#{name}", "#{APACHE_PATH}/sites-enabled/#{name}")
     end
 
     # rails_env is passed to the template
@@ -98,7 +98,7 @@ module Ec2onrails
     end
 
     def destroy_apache_files
-      FileUtils.rm("#{APACHE_PATH}/sites-enabled/#{sprintf("%03d", application_index)}-#{name}")
+      FileUtils.rm("#{APACHE_PATH}/sites-enabled/#{name}")
       FileUtils.rm("#{APACHE_PATH}/sites-available/#{name}")
       FileUtils.rm("#{APACHE_PATH}/sites-available/#{name}.common")
       FileUtils.rm("#{APACHE_PATH}/sites-available/#{name}.custom")
@@ -118,21 +118,8 @@ module Ec2onrails
 
   private
 
-    def application_index
-      Dir.glob("#{APACHE_PATH}/sites-enabled/*").each do |file|
-        filename = Pathname.new(file).basename.to_s
-        match = filename.match(/^(\d+)-(.*)$/)
-
-        if match && match[2] == @name 
-          return match[1].to_i
-          break
-        end
-      end
-      raise 'Application not found'
-    end
-
     def application_count
-      Dir.glob("#{APACHE_PATH}/sites-enabled/*").length
+      Dir.glob("/etc/mongrel_cluster/*.yml").length
     end
 
   end
