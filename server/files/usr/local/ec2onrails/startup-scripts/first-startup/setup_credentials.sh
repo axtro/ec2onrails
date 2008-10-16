@@ -17,14 +17,17 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    This file helps spread the root key so we can log in/deploy using the 
+#    app user instead of root, but with the same ec2 key
 
+#make sure we have the credentials
+/etc/init.d/ec2-get-credentials
 
-chmod 777 /tmp
+mkdir -p -m 700 /home/app/.ssh
+cp /root/.ssh/authorized_keys /home/app/.ssh
+chown -R app:app /home/app/.ssh
 
-cp /etc/hosts /etc/hosts.original
-
-#make sure the monitrc files have the correct permissions set
-chmod 700 /etc/monit/*
-
-# Rebuild postfix db
-newaliases
+mkdir -p -m 700 /home/admin/.ssh
+cp /root/.ssh/authorized_keys /home/admin/.ssh
+chown -R admin:admin /home/admin/.ssh

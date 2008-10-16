@@ -17,3 +17,11 @@ for f in `ls /mnt/log/apache2/*.log` ; do
     /usr/local/ec2onrails/bin/archive_file.rb --file $logfile.gz --dir logs/apache && rm $logfile.gz
   fi
 done
+
+for f in `ls /mnt/log/mysql/*.log` ; do
+  logfile=$f-`date +%Y%m%d`
+  if [ -e $logfile ] ; then
+    gzip $logfile
+    /usr/local/ec2onrails/bin/archive_file.rb --file $logfile.gz --dir logs/mysql && rm $logfile.gz
+  fi
+done
