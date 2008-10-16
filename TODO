@@ -1,0 +1,5 @@
+Things to be done before multi app can be used:
+- Make Apache logs go to different files for different apps
+- Update cron tasks to work for every installed app
+- Update all erb templates with changes done by us in server/files/etc
+	- For example our monit config is more exhaustive
