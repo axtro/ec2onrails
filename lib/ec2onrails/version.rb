@@ -21,7 +21,7 @@ module Ec2onrails #:nodoc:
     MAJOR = 0
     MINOR = 9
     TINY  = 9
-    TINIER = 2
+    TINIER = 3
     # GEM_UPDATE  = 0
     # STRING = [MAJOR, MINOR, TINY, GEM_UPDATE].join('.')
     STRING = [MAJOR, MINOR, TINY, TINIER].join('.')
