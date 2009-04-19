@@ -27,7 +27,7 @@
 require "rake/clean"
 require 'yaml'
 require 'erb'
-require "#{File.dirname(__FILE__)}/../gem/lib/ec2onrails/version"
+require "#{File.dirname(__FILE__)}/../lib/ec2onrails/version"
 
 if `whoami`.strip != 'root'
   raise "Sorry, this buildfile must be run as root."
