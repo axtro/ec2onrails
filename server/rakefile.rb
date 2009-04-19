@@ -93,9 +93,8 @@ end
   "mongrel",
   "mongrel_cluster",
   "optiflag",
-  "rails",
+  "rails -v 2.2.2",
   "rails -v 2.0.2",
-  "rails -v 1.2.6",
   "rake",
   "archive-tar-minitar"
 ]
@@ -129,8 +128,8 @@ end
 desc "Install required ruby gems inside the image's filesystem"
 task :install_gems => [:install_packages] do |t|
   unless_completed(t) do
-    run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/38646/rubygems-1.2.0.tgz && tar zxf rubygems-1.2.0.tgz'"
-    run_chroot "sh -c 'cd /tmp/rubygems-1.2.0 && ruby setup.rb'"
+    run_chroot "sh -c 'cd /tmp && wget -q http://rubyforge.org/frs/download.php/55066/rubygems-1.3.2.tgz && tar zxf rubygems-1.3.2.tgz'"
+    run_chroot "sh -c 'cd /tmp/rubygems-1.3.2 && ruby setup.rb'"
     run_chroot "ln -sf /usr/bin/gem1.8 /usr/bin/gem"
     run_chroot "gem update --system --no-rdoc --no-ri"
     run_chroot "gem update --no-rdoc --no-ri"
