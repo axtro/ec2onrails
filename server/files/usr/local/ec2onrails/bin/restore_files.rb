@@ -39,20 +39,29 @@ begin
   FileUtils.mkdir_p @temp_dir
   
   if ARGV.flags.timestamp
-    filename = "#{ARGV.flags.timestamp}.tar"
+    timestamp = ARGV.flags.timestamp
   else
-    # The user didn't supply a timestamp to load, so get a list of all files inside <bucket>/<dir> and take the youngest timestamp.
+    # The user didn't supply a timestamp to load, so get a list of all objects inside <bucket>/<dir> and take the youngest timestamp.
+    # <bucket>/<dir> has the following structure:
+    #   <timestamp/>
+    #     part_00
+    #     part_01
+    #     ....
+    # so we have to extract the timestamp substring from the last object when sorted alphabetically.
     bucket = Bucket.find(@s3.bucket, {:prefix => dir})
-    names_to_buckets = bucket.objects.map { |o| {:name => File.basename(o.key), :object => o }}
-    names_to_buckets.sort_by {|a| a[:name]}
-    filename = names_to_buckets.last[:name]
+    names_to_buckets = bucket.objects.map { |o| {:key => o.key, :object => o }}
+    names_to_buckets.sort_by {|a| a[:key]}
+    timestamp = File.basename(File.dirname(names_to_buckets.last[:key]))
   end
   
-  file = "#{@temp_dir}/#{filename}"
-  @s3.retrieve_file(file)
+  puts "Retrieving data from #{timestamp}..."
+  @s3.dir = dir + "/" + timestamp
+  @s3.retrieve_files("part_", @temp_dir)
 
+  puts "Extracting files..."
   FileUtils.cd(ARGV.flags.destDir) do
-    Minitar.unpack(file, '.')
+    tar_parts = Dir.glob(File.join(@temp_dir, "part_??")).sort
+    Ec2onrails::Utils.run "cat #{tar_parts.join(" ")} | tar -x"
   end
 ensure
   FileUtils.rm_rf(@temp_dir)

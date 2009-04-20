@@ -27,9 +27,11 @@ end
 
 # include the hostname in the bucket name so test instances don't accidentally clobber real backups
 bucket = ARGV.flags.bucket
-dir = ARGV.flags.dir
-@s3 = Ec2onrails::S3Helper.new(bucket, dir)
-@temp_dir = "/mnt/tmp/backup-files-#{@s3.bucket}-#{dir.gsub(/\//, "-")}"
+local_dir = ARGV.flags.dir
+# To allow uploading of files > 5GB we put the individual file parts into a time stamped subdirectory.
+remote_dir = local_dir + "/" + Time.new.strftime('%Y-%m-%d--%H-%M-%S')
+@s3 = Ec2onrails::S3Helper.new(bucket, remote_dir)
+@temp_dir = "/mnt/tmp/backup-files-#{@s3.bucket}-#{local_dir.gsub(/\//, "-")}"
 local_file = File.join(@temp_dir, "#{Time.new.strftime('%Y-%m-%d--%H-%M-%S')}.tar")
 if File.exists?(@temp_dir)
   puts "Temp dir exists (#{@temp_dir}), aborting. Is another backup process running?"
@@ -45,7 +47,15 @@ begin
     File.open(local_file, 'wb') { |tar| Minitar.pack(File.basename(source_file), tar) }
   end
   
-  @s3.store_file(local_file)
+  FileUtils.cd(@temp_dir) do
+    # Split the tar file into 4000MB chunks (the maximum S3 file size is 5GB). Even if the tar file is smaller then 4GB the split
+    # utility will create a single new file named "part_00", so we can treat both cases the same.
+    Ec2onrails::Utils.run "split --bytes=4000MB --numeric-suffixes #{local_file} part_"
+  
+    Dir.glob("part_??").sort.each do |tar_part|
+      @s3.store_file(tar_part)
+    end
+  end
 ensure
   FileUtils.rm_rf(@temp_dir)
 end
