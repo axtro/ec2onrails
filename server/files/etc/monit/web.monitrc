@@ -5,6 +5,7 @@ check process apache with pidfile /var/run/apache2.pid
   if totalmem > 300.0 MB for 5 cycles then restart
   if children > 250 then alert
   if failed port 80 with timeout 10 seconds then restart
-  if 3 restarts within 5 cycles then timeout
+  # Setting the following timeout to a really high value so monit tries real hard to resurrect a dead apache
+  if 50 restarts within 50 cycles then timeout
   mode manual
   group web
