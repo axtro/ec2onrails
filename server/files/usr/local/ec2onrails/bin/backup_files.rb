@@ -44,7 +44,8 @@ begin
   source_file = ARGV.flags.sourceFileOrDir
   
   FileUtils.cd(File.dirname(source_file)) do
-    File.open(local_file, 'wb') { |tar| Minitar.pack(File.basename(source_file), tar) }
+    # File.open(local_file, 'wb') { |tar| Minitar.pack(File.basename(source_file), tar) }
+    `tar -cf #{local_file} #{File.basename(source_file)}`
   end
   
   FileUtils.cd(@temp_dir) do
